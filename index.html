@@ -1,4 +1,5 @@
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Prompt Blueprint: draft better AI prompts instantly</title>
 <style>
   /* ---------- tokens ---------- */
@@ -58,8 +59,10 @@
     background-attachment:fixed;
     color:var(--ink);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Segoe UI Variable",Roboto,"Helvetica Neue",Arial,sans-serif;
+    font-size:16px;
     line-height:1.55;
     min-height:100vh;
+    overscroll-behavior-y:contain;
   }
 
   .mono{
@@ -137,14 +140,15 @@
     text-transform:none;
     letter-spacing:0;
     font-weight:500;
-    font-size:0.78rem;
-    padding:6px 12px;
+    font-size:0.8rem;
+    padding:8px 14px;
+    min-height:40px;
     border:1px solid var(--line-strong);
     border-radius:999px;
     background:transparent;
     color:var(--ink-soft);
   }
-  .chip:hover{ background:var(--line); color:var(--ink); }
+  .chip:hover{ background:var(--line); color:var(--ink); border-color:var(--accent); }
 
   main{
     display:grid;
@@ -153,8 +157,17 @@
     margin-top:20px;
     align-items:start;
   }
+  @media (max-width:1024px){
+    .sheet{ max-width:100%; }
+  }
   @media (max-width:900px){
     main{ grid-template-columns:1fr; }
+  }
+  @media (max-width:480px){
+    .sheet{ padding:16px 14px 48px; }
+    .titleblock{ padding:14px 16px; }
+    .tb-name{ font-size:1.2rem; }
+    .tb-stat{ text-align:left; }
   }
 
   section.panel{
@@ -212,9 +225,10 @@
     border:1.5px solid var(--line-strong);
     padding:10px 12px;
     font-family:inherit;
-    font-size:0.95rem;
+    font-size:1rem;
     line-height:1.5;
     border-radius:0;
+    min-height:44px;
   }
   textarea{ resize:vertical; min-height:120px; }
   textarea::placeholder, input::placeholder{ color:var(--ink-soft); opacity:0.75; }
@@ -243,8 +257,13 @@
     margin:0;
     cursor:pointer;
   }
+  .seg label{ min-height:44px; touch-action:manipulation; }
   .seg span{
-    display:block;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    height:100%;
+    min-height:44px;
     padding:10px 4px;
     font-family:ui-monospace,"Cascadia Code","Cascadia Mono","SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
     font-size:0.75rem;
@@ -281,17 +300,25 @@
     background:var(--paper);
     color:var(--ink);
     padding:10px 16px;
+    min-height:44px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    touch-action:manipulation;
+    transition:background 0.15s ease, filter 0.15s ease, transform 0.1s ease;
   }
   button:hover{ background:var(--line); }
+  button:active{ transform:scale(0.98); }
   .btn-primary{
     background:var(--accent);
     color:var(--accent-ink);
     border-color:var(--accent);
     width:100%;
     padding:13px 16px;
+    min-height:48px;
     font-size:0.85rem;
   }
-  .btn-primary:hover{ filter:brightness(1.06); }
+  .btn-primary:hover{ filter:brightness(1.06); box-shadow:0 0 18px color-mix(in srgb, var(--accent) 45%, transparent); }
   .btn-row{ display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; }
   .btn-row button{ flex:1; min-width:110px; }
 
@@ -537,6 +564,7 @@
             <div class="btn-row">
               <button id="copyBtn">Copy</button>
               <button id="downloadBtn">Download .md</button>
+              <button id="shareBtn">Share link</button>
             </div>
 
             <div class="subhead">Why this works</div>
@@ -817,9 +845,18 @@
     }
 
     revs += 1;
-    document.getElementById("revCount").textContent = String(revs).padStart(2,"0");
+    document.getElementById("revCount").textContent = String(revs);
     document.getElementById("statusLabel").textContent = "drafted";
     window.__lastPrompt = promptText;
+
+    var shareState = { r: raw, p: platform };
+    if (audience.trim()) shareState.a = audience;
+    if (constraintsInput.trim()) shareState.c = constraintsInput;
+    if (formatSel !== "auto") shareState.f = formatSel;
+    if (complexitySel !== "auto") shareState.x = complexitySel;
+    try {
+      history.replaceState(null, "", "#" + encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(shareState))))));
+    } catch(e){ /* non-fatal: link sharing just won't carry state */ }
   }
 
   function updateWordCount(){
@@ -898,6 +935,15 @@
   document.getElementById("generate").addEventListener("click", generate);
   document.getElementById("copyBtn").addEventListener("click", copyPrompt);
   document.getElementById("downloadBtn").addEventListener("click", downloadPrompt);
+  document.getElementById("shareBtn").addEventListener("click", function(){
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(location.href).then(function(){
+        showToast("Link copied: opens pre-filled with this draft");
+      }).catch(function(){ fallbackCopy(location.href); });
+    } else {
+      fallbackCopy(location.href);
+    }
+  });
   document.getElementById("raw").addEventListener("keydown", function(e){
     if ((e.metaKey || e.ctrlKey) && e.key === "Enter") generate();
   });
@@ -909,6 +955,27 @@
     });
   });
 
+  function restoreFromHash(){
+    if (!location.hash || location.hash.length < 2) return;
+    try {
+      var state = JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(location.hash.slice(1))))));
+      if (!state || !state.r) return;
+      document.getElementById("raw").value = state.r;
+      if (state.a) document.getElementById("audience").value = state.a;
+      if (state.c) document.getElementById("constraints").value = state.c;
+      if (state.f) document.getElementById("format").value = state.f;
+      if (state.x) document.getElementById("complexity").value = state.x;
+      if (state.p){
+        var radio = document.querySelector('input[name="platform"][value="' + state.p + '"]');
+        if (radio) radio.checked = true;
+      }
+      if (state.a || state.c || state.f) document.querySelector("details").open = true;
+      updateWordCount();
+      generate();
+    } catch(e){ /* malformed hash: ignore and show the empty state */ }
+  }
+
   updateWordCount();
+  restoreFromHash();
 })();
 </script>
