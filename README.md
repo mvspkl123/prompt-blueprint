@@ -5,7 +5,7 @@ platform (Claude, GPT, Gemini, or Any), and get back a structured,
 ready-to-paste prompt built with the PCTCE framework (Persona, Context,
 Task, Constraints, Evaluation).
 
-**[Open the live page](https://YOUR_GITHUB_USERNAME.github.io/prompt-blueprint/)**
+**[Open the live page](https://mvspkl123.github.io/prompt-blueprint/)**
 
 ## What it does
 
