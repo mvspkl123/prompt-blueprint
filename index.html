@@ -4,45 +4,45 @@
 <style>
   /* ---------- tokens ---------- */
   :root{
-    --paper:#F2EFE6;
-    --surface:#FBF9F3;
-    --ink:#1B2A33;
-    --ink-soft:#4B5D66;
-    --line:rgba(43,108,176,0.22);
-    --line-strong:rgba(27,42,51,0.32);
-    --accent:#2B6CB0;
+    --paper:#F7F5F1;
+    --surface:#FFFFFF;
+    --ink:#211D1A;
+    --ink-soft:#6B6259;
+    --line:rgba(33,29,26,0.10);
+    --line-strong:rgba(33,29,26,0.18);
+    --accent:#3A6B52;
     --accent-ink:#FFFFFF;
-    --annotation:#B8452F;
-    --shadow:rgba(27,42,51,0.14);
-    --focus:#2B6CB0;
+    --annotation:#B23B2E;
+    --shadow:rgba(33,29,26,0.08);
+    --focus:#3A6B52;
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
-      --paper:#0E2436;
-      --surface:#123049;
-      --ink:#E7F1F8;
-      --ink-soft:#A9C3D6;
-      --line:rgba(231,241,248,0.16);
-      --line-strong:rgba(231,241,248,0.28);
-      --accent:#7EC1EE;
-      --accent-ink:#0E2436;
-      --annotation:#F2966B;
-      --shadow:rgba(0,0,0,0.4);
-      --focus:#7EC1EE;
+      --paper:#1A1714;
+      --surface:#24201C;
+      --ink:#F3EFE8;
+      --ink-soft:#B8AFA3;
+      --line:rgba(243,239,232,0.08);
+      --line-strong:rgba(243,239,232,0.16);
+      --accent:#6FA98A;
+      --accent-ink:#17261F;
+      --annotation:#E8896E;
+      --shadow:rgba(0,0,0,0.35);
+      --focus:#6FA98A;
     }
   }
   :root[data-theme="dark"]{
-    --paper:#0E2436;
-    --surface:#123049;
-    --ink:#E7F1F8;
-    --ink-soft:#A9C3D6;
-    --line:rgba(231,241,248,0.16);
-    --line-strong:rgba(231,241,248,0.28);
-    --accent:#7EC1EE;
-    --accent-ink:#0E2436;
-    --annotation:#F2966B;
-    --shadow:rgba(0,0,0,0.4);
-    --focus:#7EC1EE;
+    --paper:#1A1714;
+    --surface:#24201C;
+    --ink:#F3EFE8;
+    --ink-soft:#B8AFA3;
+    --line:rgba(243,239,232,0.08);
+    --line-strong:rgba(243,239,232,0.16);
+    --accent:#6FA98A;
+    --accent-ink:#17261F;
+    --annotation:#E8896E;
+    --shadow:rgba(0,0,0,0.35);
+    --focus:#6FA98A;
   }
 
   *{box-sizing:border-box;}
@@ -52,16 +52,11 @@
 
   body{
     margin:0;
-    background:
-      repeating-linear-gradient(0deg, var(--line) 0px, var(--line) 1px, transparent 1px, transparent 28px),
-      repeating-linear-gradient(90deg, var(--line) 0px, var(--line) 1px, transparent 1px, transparent 28px),
-      var(--paper);
-    background-attachment:fixed;
+    background:var(--paper);
     color:var(--ink);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Segoe UI Variable",Roboto,"Helvetica Neue",Arial,sans-serif;
     font-size:16px;
     line-height:1.55;
-    min-height:100vh;
     overscroll-behavior-y:contain;
   }
 
@@ -75,7 +70,7 @@
   .sheet{
     max-width:1180px;
     margin:0 auto;
-    padding:20px 20px 64px;
+    padding:20px 20px 40px;
   }
 
   /* title block, drafting-sheet style */
@@ -343,17 +338,33 @@
   .drawing::after{ bottom:-1.5px; left:-1.5px; border-bottom:2.5px solid var(--accent); border-left:2.5px solid var(--accent); }
   .drawing .tick-br{ bottom:-1.5px; right:-1.5px; border-bottom:2.5px solid var(--accent); border-right:2.5px solid var(--accent); }
 
-  .empty-state{
-    text-align:center;
-    padding:60px 20px;
+  .empty-state{ padding:8px 4px; }
+  .empty-lead{
+    margin:0 0 16px;
+    max-width:48ch;
     color:var(--ink-soft);
   }
-  .empty-state .mark{
-    font-size:2.2rem;
-    margin-bottom:10px;
+  .empty-list{
+    list-style:none;
+    margin:0;
+    padding:0;
+    max-width:52ch;
+  }
+  .empty-list li{
+    padding:10px 0 10px 22px;
+    border-top:1px solid var(--line);
+    position:relative;
+    font-size:0.92rem;
+    color:var(--ink-soft);
+  }
+  .empty-list li:first-child{ border-top:none; }
+  .empty-list li::before{
+    content:"\203A";
+    position:absolute;
+    left:0;
     color:var(--accent);
   }
-  .empty-state p{ max-width:46ch; margin:6px auto 0; }
+  .empty-list b{ color:var(--ink); font-weight:600; }
 
   @keyframes reveal{
     from{ opacity:0; transform:translateY(8px); }
@@ -553,8 +564,14 @@
         <div class="drawing" id="drawing">
           <span class="tick-tr"></span><span class="tick-br"></span>
           <div class="empty-state" id="emptyState">
-            <div class="mark mono">[ ]</div>
-            <p>Describe what you need on the left, pick a platform, and this sheet fills in with a structured, ready-to-paste prompt: persona, context, task steps, constraints, and a self-check built in.</p>
+            <p class="empty-lead">Describe what you need on the left. This panel returns a structured, ready-to-paste prompt built from five parts:</p>
+            <ul class="empty-list">
+              <li><b>Persona</b> scoped to your task, not a generic "expert"</li>
+              <li><b>Context</b> pulled straight from what you typed</li>
+              <li><b>Task</b> broken into ordered, explicit steps</li>
+              <li><b>Constraints</b> that forbid fabricating information</li>
+              <li><b>Evaluation</b>, a self-check the model runs before answering</li>
+            </ul>
           </div>
           <div id="output" style="display:none">
             <div class="meta-row" id="metaRow"></div>
